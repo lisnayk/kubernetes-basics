@@ -1,0 +1,3 @@
+- 
+- https://www.geeksforgeeks.org/devops/kubernetes-architecture/
+- https://kubernetes.io/ru/docs/concepts/overview/components/
