@@ -39,14 +39,14 @@
 
 ## Лекційні матеріали
 
-1. [Архітектура Kubernetes](lectures/02-kubernetes-architecture.md)
+1. [Архітектура Kubernetes](lectures/lec1/Readme.md)
 
 
 ---
 
 ## Лабораторні роботи
 
-1. [Розгортання локального Kubernetes-кластера](labs/02-local-cluster.md)
+1. [Розгортання локального Kubernetes-кластера](labs/lab1/Readme.md)
 
 ---
 
