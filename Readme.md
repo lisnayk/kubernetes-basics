@@ -45,7 +45,8 @@
 
 ### Лабораторні роботи
 
-1. [Розгортання локального Kubernetes-кластера](labs/lab1/Readme.md)
+1. [№1 Розгортання локального Kubernetes-кластера](labs/lab1/Readme.md)
+2. [№2 Простори імен (Namespace) та детальна робота з об'єктом Pod (Draft)](labs/lab2/Readme.md)
 
 ---
 

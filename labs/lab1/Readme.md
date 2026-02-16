@@ -199,3 +199,4 @@ kubectl get nodes
 # Користні посилання
 
 - https://kubernetes.io/docs/tasks/tools/install-kubectl-windows/
+- https://kubernetes.io/docs/tasks/tools/
