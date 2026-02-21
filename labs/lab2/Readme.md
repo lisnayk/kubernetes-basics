@@ -156,11 +156,12 @@ Pod може інкапсулювати застосунок, що склада�
 файли або синхронізує їх із віддаленим джерелом. Pod об’єднує ці контейнери, ресурси зберігання та тимчасову мережеву
 ідентичність в одну логічну одиницю.
 
-![img_2.png](assets/img_2.png)
+<img src="assets/img_2.png" alt="drawing" width="500"/>
 
 ### Приклад опису обєкта Pod
 
-![img.png](assets/img.png)
+<img src="assets/img.png" alt="drawing" width="800"/>
+
 
 Таблиця 3. Основні команди kubectl для роботи з Pod
 
@@ -188,7 +189,6 @@ Pod може інкапсулювати застосунок, що склада�
 |                      | `kubectl delete pod <name> --force --grace-period=0` | Примусове видалення                     |
 | **Налагодження**     | `kubectl debug <pod> -it --image=busybox`            | Додати ephemeral-контейнер              |
 | **Моніторинг**       | `kubectl top pod <name>`                             | Використання CPU / RAM (metrics-server) |
-
 
 ## Завдання
 
@@ -253,8 +253,10 @@ kubectl apply -f nginx-<YOUR_LASTNAME>-pod.yaml
           ports:
             - containerPort: 8080          
     ```
-6. Відкрити доступ до контейнерів використовуючи команди `kubectl port-forward` та протестувати доступ до СКБД через adminer в браузері.
-7. Під'єднатися до кожного з контейнерів пода та отримати інформацію про поточну версію операційної системи та змінні оточення
+6. Відкрити доступ до контейнерів використовуючи команди `kubectl port-forward` та протестувати доступ до СКБД через
+   adminer в браузері.
+7. Під'єднатися до кожного з контейнерів пода та отримати інформацію про поточну версію операційної системи та змінні
+   оточення
    ```bash
    cat /etc/os-release
    env
@@ -264,12 +266,11 @@ kubectl apply -f nginx-<YOUR_LASTNAME>-pod.yaml
 Таблиця 3. - Варіанти СКБД.
 
 | Варіант | СУБД         | metadata.name        | metadata.labels.group | Environment Variables (СУБД)                                                                                                                                      |
-| ------- | ------------ | -------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1       | MySQL        | lab2-<YOUR_LASTNAME> | <YOUR-GROUP>          | MYSQL_ROOT_PASSWORD = root_<STUDENT_ID><br>MYSQL_DATABASE = db_<YOUR_LASTNAME><br>MYSQL_USER = user_<YOUR_LASTNAME><br>MYSQL_PASSWORD = pass_<STUDENT_ID>         |
-| 2       | MariaDB      | lab2-<YOUR_LASTNAME> | <YOUR-GROUP>          | MARIADB_ROOT_PASSWORD = root_<STUDENT_ID><br>MARIADB_DATABASE = db_<YOUR_LASTNAME><br>MARIADB_USER = user_<YOUR_LASTNAME><br>MARIADB_PASSWORD = pass_<STUDENT_ID> |
-| 3       | PostgreSQL   | lab2-<YOUR_LASTNAME> | <YOUR-GROUP>          | POSTGRES_USER = user_<YOUR_LASTNAME><br>POSTGRES_PASSWORD = pass_<STUDENT_ID><br>POSTGRES_DB = db_<YOUR_LASTNAME>                                                 |
-| 4       | MSSQL Server | lab2-<YOUR_LASTNAME> | <YOUR-GROUP>          | ACCEPT_EULA = Y<br>SA_PASSWORD = StrongPass_<STUDENT_ID>!<br>MSSQL_PID = Express                                                                                  |
-
+|---------|--------------|----------------------|-----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1       | MySQL        | lab2-<YOUR_LASTNAME> | bak-<YOUR-GROUP>      | MYSQL_ROOT_PASSWORD = root_<STUDENT_ID><br>MYSQL_DATABASE = db_<YOUR_LASTNAME><br>MYSQL_USER = user_<YOUR_LASTNAME><br>MYSQL_PASSWORD = pass_<STUDENT_ID>         |
+| 2       | MariaDB      | lab2-<YOUR_LASTNAME> | bak-<YOUR-GROUP>      | MARIADB_ROOT_PASSWORD = root_<STUDENT_ID><br>MARIADB_DATABASE = db_<YOUR_LASTNAME><br>MARIADB_USER = user_<YOUR_LASTNAME><br>MARIADB_PASSWORD = pass_<STUDENT_ID> |
+| 3       | PostgreSQL   | lab2-<YOUR_LASTNAME> | bak-<YOUR-GROUP>      | POSTGRES_USER = user_<YOUR_LASTNAME><br>POSTGRES_PASSWORD = pass_<STUDENT_ID><br>POSTGRES_DB = db_<YOUR_LASTNAME>                                                 |
+| 4       | MSSQL Server | lab2-<YOUR_LASTNAME> | bak-<YOUR-GROUP>      | ACCEPT_EULA = Y<br>SA_PASSWORD = StrongPass_<STUDENT_ID>!<br>MSSQL_PID = Express                                                                                  |
 
 ## Контрольні питання
 
