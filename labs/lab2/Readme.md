@@ -106,6 +106,7 @@ kubectl api-resources --namespaced=false
 |                                | `kubectl get resourcequota -n lec3`                     | Перевірити квоти                      |
 |                                | `kubectl get limitrange -n lec3`                        | Перевірити обмеження ресурсів         |
 
+
 ### Pod
 
 **Pod** — найменша одиниця розгортання Kubernetes, група одного або кількох контейнерів із спільними ресурсами
