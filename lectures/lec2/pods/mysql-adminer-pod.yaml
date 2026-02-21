@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: lec2
+  labels:
+    group: 6.1212-1
+    lab: lab2
+  name: multi-container-example
+spec:
+  volumes:
+    - name: mysql-data
+      emptyDir: { }
+  containers:
+    - image: mysql
+      name: db-app
+      env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: password
+      ports:
+        - containerPort: 3306
+      volumeMounts:
+        - name: mysql-data
+          mountPath: /var/lib/mysql
+    - image: adminer
+      name: ui-app
+      ports:
+        - containerPort: 8080

@@ -38,15 +38,15 @@
 
 ### Лекційні матеріали
 
-1. [Архітектура Kubernetes](lectures/lec1/Readme.md)
-
+1. [Лекція №1. Архітектура Kubernetes](lectures/lec1/Readme.md)
+2. [Лекція №2. Kubernetes Pod](lectures/lec2/Readme.md)
 
 ---
 
 ### Лабораторні роботи
 
-1. [№1 Розгортання локального Kubernetes-кластера](labs/lab1/Readme.md)
-2. [№2 Простори імен (Namespace) та детальна робота з об'єктом Pod (Draft)](labs/lab2/Readme.md)
+1. [Лабораторна робота №1. Розгортання локального Kubernetes-кластера](labs/lab1/Readme.md)
+2. [Лабораторна робота №2. Простори імен (Namespace) та робота з об'єктом Pod](labs/lab2/Readme.md)
 
 ---
 
