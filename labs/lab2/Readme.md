@@ -98,7 +98,7 @@ kubectl api-resources --namespaced=false
 |                                | `kubectl logs <pod> -n lec3`                            | Логи Pod                              |
 |                                | `kubectl delete pod <pod> -n lec3`                      | Видалити Pod                          |
 | **Namespace за замовчуванням** | `kubectl config set-context --current --namespace=lec3` | Встановити namespace за замовчуванням |
-|                                | ``                                                      | Перевірити активний namespace         |
+|                                | `kubectl config view --minify \| grep namespace:`       | Перевірити активний namespace         |
 |                                | `kubectl config current-context`                        | Поточний контекст                     |
 | **Видалення**                  | `kubectl delete namespace lec3`                         | Видалити namespace                    |
 |                                | `kubectl delete ns lec3`                                | Скорочена форма                       |
