@@ -267,10 +267,10 @@ kubectl apply -f nginx-<YOUR_LASTNAME>-pod.yaml
 
 | Варіант | СУБД         | metadata.name        | metadata.labels.group | Environment Variables (СУБД)                                                                                                                                      |
 |---------|--------------|----------------------|-----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1       | MySQL        | lab2-<YOUR_LASTNAME> | bak-<YOUR-GROUP>      | MYSQL_ROOT_PASSWORD = root_<STUDENT_ID><br>MYSQL_DATABASE = db_<YOUR_LASTNAME><br>MYSQL_USER = user_<YOUR_LASTNAME><br>MYSQL_PASSWORD = pass_<STUDENT_ID>         |
-| 2       | MariaDB      | lab2-<YOUR_LASTNAME> | bak-<YOUR-GROUP>      | MARIADB_ROOT_PASSWORD = root_<STUDENT_ID><br>MARIADB_DATABASE = db_<YOUR_LASTNAME><br>MARIADB_USER = user_<YOUR_LASTNAME><br>MARIADB_PASSWORD = pass_<STUDENT_ID> |
-| 3       | PostgreSQL   | lab2-<YOUR_LASTNAME> | bak-<YOUR-GROUP>      | POSTGRES_USER = user_<YOUR_LASTNAME><br>POSTGRES_PASSWORD = pass_<STUDENT_ID><br>POSTGRES_DB = db_<YOUR_LASTNAME>                                                 |
-| 4       | MSSQL Server | lab2-<YOUR_LASTNAME> | bak-<YOUR-GROUP>      | ACCEPT_EULA = Y<br>SA_PASSWORD = StrongPass_<STUDENT_ID>!<br>MSSQL_PID = Express                                                                                  |
+| 1       | MySQL        | lab2-<YOUR_LASTNAME> | <YOUR_GROUP>          | MYSQL_ROOT_PASSWORD = root_<STUDENT_ID><br>MYSQL_DATABASE = db_<YOUR_LASTNAME><br>MYSQL_USER = user_<YOUR_LASTNAME><br>MYSQL_PASSWORD = pass_<STUDENT_ID>         |
+| 2       | MariaDB      | lab2-<YOUR_LASTNAME> | <YOUR_GROUP>          | MARIADB_ROOT_PASSWORD = root_<STUDENT_ID><br>MARIADB_DATABASE = db_<YOUR_LASTNAME><br>MARIADB_USER = user_<YOUR_LASTNAME><br>MARIADB_PASSWORD = pass_<STUDENT_ID> |
+| 3       | PostgreSQL   | lab2-<YOUR_LASTNAME> | <YOUR_GROUP>          | POSTGRES_USER = user_<YOUR_LASTNAME><br>POSTGRES_PASSWORD = pass_<STUDENT_ID><br>POSTGRES_DB = db_<YOUR_LASTNAME>                                                 |
+| 4       | MSSQL Server | lab2-<YOUR_LASTNAME> | <YOUR_GROUP>          | ACCEPT_EULA = Y<br>SA_PASSWORD = StrongPass_<STUDENT_ID>!<br>MSSQL_PID = Express                                                                                  |
 
 ## Контрольні питання
 
