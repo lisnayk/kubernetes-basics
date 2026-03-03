@@ -40,14 +40,15 @@
 
 1. [Лекція №1. Архітектура Kubernetes](lectures/lec1/Readme.md)
 2. [Лекція №2. Kubernetes Pod](lectures/lec2/Readme.md)
-
+3. [Лекція №3. Deployments](lectures/lec3/Readme.md)
+4  [Лекція №4. Services](lectures/lec4/Readme.md)
 ---
 
 ### Лабораторні роботи
 
 1. [Лабораторна робота №1. Розгортання локального Kubernetes-кластера](labs/lab1/Readme.md)
 2. [Лабораторна робота №2. Простори імен (Namespace) та робота з об'єктом Pod](labs/lab2/Readme.md)
-3. [Лабораторна робота №3. Робота з об'єктами Deployment та Service (Draft)](labs/lab3/Readme.md)
+3. [Лабораторна робота №3. Робота з об'єктами Deployment та Service](labs/lab3/Readme.md)
 ---
 
 ## Використані інструменти та технології

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KubeProfile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-6">
+
+<div class="w-full max-w-4xl">
+    <div class="mb-6 text-center">
+        <h1 class="text-4xl font-bold text-slate-800">
+            Kubernetes Practical #3
+        </h1>
+    </div>
+
+    <div class="text-center mb-6">
+        <button onclick="loadProfile()"
+                class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl shadow hover:bg-indigo-700 transition">
+            Load Profile
+        </button>
+    </div>
+
+    <div id="profileCard"
+         class="hidden bg-white rounded-2xl shadow-lg p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <div>
+            <h3 class="font-bold text-lg mb-2">Student</h3>
+            <p>Name: <span id="studentName"></span></p>
+            <p>Group: <span id="group"></span></p>
+            <p>Variant: <span id="variant"></span></p>
+            <p>Version:
+                <span id="version" class="px-2 py-1 bg-indigo-100 rounded"></span>
+            </p>
+        </div>
+
+        <div>
+            <h3 class="font-bold text-lg mb-2">Deployment</h3>
+            <p>Backend Pod:
+                <span id="backendPod" class="px-2 py-1 rounded"></span>
+            </p>
+            <p>Namespace: <span id="namespace"></span></p>
+            <p>Node: <span id="node"></span></p>
+            <p>Pod IP: <span id="podIP"></span></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    let lastBackendPod = null;
+    let lastVersion = null;
+
+    function highlight(el) {
+        el.classList.add("bg-yellow-200");
+        setTimeout(() => el.classList.remove("bg-yellow-200"), 800);
+    }
+
+    async function loadProfile() {
+        const res = await fetch("/api/profile");
+        const data = await res.json();
+
+        document.getElementById("profileCard").classList.remove("hidden");
+
+        document.getElementById("studentName").textContent = data.student.name;
+        document.getElementById("group").textContent = data.student.group;
+        document.getElementById("variant").textContent = data.student.variant;
+
+        const versionEl = document.getElementById("version");
+        versionEl.textContent = data.deployment.version;
+        if (lastVersion && lastVersion !== data.deployment.version) {
+            highlight(versionEl);
+        }
+        lastVersion = data.deployment.version;
+
+        const backendEl = document.getElementById("backendPod");
+        backendEl.textContent = data.deployment.backendPod;
+        if (lastBackendPod && lastBackendPod !== data.deployment.backendPod) {
+            highlight(backendEl);
+        }
+        lastBackendPod = data.deployment.backendPod;
+
+        document.getElementById("namespace").textContent = data.deployment.namespace;
+        document.getElementById("node").textContent = data.deployment.node;
+        document.getElementById("podIP").textContent = data.deployment.podIP;
+    }
+</script>
+
+</body>
+</html>

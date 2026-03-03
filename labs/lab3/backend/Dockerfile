@@ -1,0 +1,20 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+ARG STUDENT_NAME
+ARG GROUP
+ARG VARIANT
+
+ENV STUDENT_NAME=${STUDENT_NAME}
+ENV GROUP=${GROUP}
+ENV VARIANT=${VARIANT}
+
+COPY package.json .
+RUN npm install
+
+COPY server.js .
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]
