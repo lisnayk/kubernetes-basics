@@ -5,6 +5,8 @@ const { faker } = require("@faker-js/faker");
 const app = express();
 const PORT = 3000;
 const MEMCACHED_SERVERS = process.env.MEMCACHED_SERVERS || "memcached-service:11211";
+const EXTERNAL_API_URL = process.env.EXTERNAL_API_URL; // e.g. http://external-api-service:3001/api/external/data
+const EXTERNAL_API_KEY = process.env.EXTERNAL_API_KEY;
 
 const mc = memjs.Client.create(MEMCACHED_SERVERS);
 
@@ -40,11 +42,29 @@ app.get("/api/profile", async (req, res) => {
         // Кешуємо на 10 секунд
         await mc.set(cacheKey, JSON.stringify(profile), { expires: 10 });
         
+        let externalData = null;
+        if (EXTERNAL_API_URL && EXTERNAL_API_KEY) {
+            try {
+                const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+                const response = await fetch(EXTERNAL_API_URL, {
+                    headers: { 'Authorization': `Bearer ${EXTERNAL_API_KEY}` }
+                });
+                if (response.ok) {
+                    externalData = await response.json();
+                } else {
+                    console.error("External API error:", response.status);
+                }
+            } catch (e) {
+                console.error("Failed to fetch external data:", e.message);
+            }
+        }
+
         const totalTime = Date.now() - startTime;
         console.log("Serving from backend");
         res.json({
             source: "backend",
             data: profile,
+            externalData: externalData,
             pod: process.env.POD_NAME,
             responseTime: `${totalTime}ms`
         });

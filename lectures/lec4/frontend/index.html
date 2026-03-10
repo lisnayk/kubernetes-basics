@@ -59,6 +59,10 @@
                     <div class="info-label">Компанія:</div>
                     <div id="company" class="info-value"></div>
                 </div>
+                <div id="externalSection" style="margin-top: 15px; padding: 10px; border: 1px dashed #2196F3; border-radius: 8px; background: #e3f2fd; display: none;">
+                    <div style="font-size: 0.8em; color: #1565C0; font-weight: bold; margin-bottom: 5px;">ДАНІ З ЗОВНІШНЬОГО API (Secure):</div>
+                    <div id="externalData" style="font-size: 0.9em; color: #333;"></div>
+                </div>
             </div>
 
             <div class="controls">
@@ -103,6 +107,15 @@
                     document.getElementById('podBadge').innerText = '📦 ' + res.pod;
                     document.getElementById('responseTime').innerText = 'Response time: ' + res.responseTime;
                     
+                    const extSection = document.getElementById('externalSection');
+                    const extData = document.getElementById('externalData');
+                    if (res.externalData) {
+                        extSection.style.display = 'block';
+                        extData.innerText = `${res.externalData.transaction}: ${res.externalData.amount} (Acc: ${res.externalData.account})`;
+                    } else {
+                        extSection.style.display = 'none';
+                    }
+
                     loading.style.display = 'none';
                     content.style.display = 'block';
                     content.style.opacity = '1';

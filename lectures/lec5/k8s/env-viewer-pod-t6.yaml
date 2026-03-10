@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: env-viewer-pod-t6
+  labels:
+    app: env-viewer
+spec:
+  containers:
+  - name: env-viewer
+    image: lisnyak/env-viewer:v3
+    ports:
+    - containerPort: 8080
+    volumeMounts:
+    - name: json-config-volume
+      mountPath: /app/config
+  volumes:
+  - name: json-config-volume
+    configMap:
+      name: json-config

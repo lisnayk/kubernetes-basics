@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: env-viewer-pod-t2
+  labels:
+    app: env-viewer
+spec:
+  containers:
+  - name: env-viewer
+    image: lisnyak/env-viewer:v3
+    ports:
+    - containerPort: 8080
+    env:
+      - name: APP_TITLE
+        value: "My App"
+      - name: APP_COLOR
+        valueFrom:
+          configMapKeyRef:
+            name: env-config
+            key: APP_COLOR

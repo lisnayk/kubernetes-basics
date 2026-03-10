@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: env-viewer-deployment
+  labels:
+    app: env-viewer
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: env-viewer
+  template:
+    metadata:
+      labels:
+        app: env-viewer
+    spec:
+      containers:
+      - name: env-viewer
+        image: lisnyak/env-viewer:v3
+        ports:
+        - containerPort: 8080
+        envFrom:
+          - configMapRef:
+              name: env-config
+          - secretRef:
+              name: env-secret

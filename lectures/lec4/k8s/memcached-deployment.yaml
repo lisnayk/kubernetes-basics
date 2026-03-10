@@ -13,7 +13,18 @@ spec:
         app: memcached
     spec:
       containers:
-      - name: memcached
-        image: memcached:alpine
-        ports:
-        - containerPort: 11211
+        - name: memcached
+          image: docker.io/bitnamisecure/memcached:latest
+          ports:
+            - containerPort: 11211
+          command:
+            - memcached
+            - -m 220
+            - -o
+            - modern
+            - -I 20M
+          env:
+            - name: BITNAMI_DEBUG
+              value: 'false'
+            - name: MEMCACHED_PORT_NUMBER
+              value: '11211'

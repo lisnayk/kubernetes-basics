@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: env-viewer-pod-t4
+  labels:
+    app: env-viewer
+spec:
+  containers:
+  - name: env-viewer
+    image: lisnyak/env-viewer:v3
+    ports:
+    - containerPort: 8080
+    envFrom:
+      - configMapRef:
+          name: env-config
+      - secretRef:
+          name: env-secret
