@@ -1,0 +1,46 @@
+openapi: 3.0.0
+info:
+  title: Lab 4 API Backend
+  version: 1.0.0
+  description: API for Lab 4 with Profile and Products endpoints
+paths:
+  /api/profile:
+    get:
+      summary: Get user profile
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  fullName: { type: string }
+                  email: { type: string }
+                  company: { type: string }
+                  avatar: { type: string }
+                  timestamp: { type: string }
+  /api/products:
+    get:
+      summary: Get products from external service
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mode: { type: string }
+                  products:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string }
+                        name: { type: string }
+                        price: { type: string }
+                        description: { type: string }
+                        category: { type: string }
+                        image: { type: string }
+                        mode: { type: string }

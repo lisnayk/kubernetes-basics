@@ -1,160 +1,137 @@
-# Лабораторна робота №4. ConfigMaps, Secrets та Namespaces
+# Лабораторна робота №4. Перенесення багатокомпонентної архітектури в Kubernetes
 
 ## Мета роботи
-Опанувати роботу з конфігураціями (`ConfigMap`), секретами (`Secret`) та розділенням ресурсів за допомогою `Namespaces`. Навчитися розгортати один і той самий застосунок у різних середовищах (`staging` та `production`) з різними налаштуваннями.
+Ця лабораторна робота є перехідним етапом від локальної розробки до оркестрації в хмарі. Основна мета — використати готовий багатокомпонентний додаток (наданий у вигляді Docker Compose) як вхідні дані для проектування та реалізації повноцінної інфраструктури в **Kubernetes** з використанням `Namespaces`, `ConfigMaps` та `Secrets`.
 
-## Теоретичні відомості
-
-### 1. Namespaces (Простори імен)
-`Namespace` — це механізм ізоляції ресурсів усередині одного кластера Kubernetes.
-- Дозволяє розділяти ресурси між командами або середовищами (dev, test, prod).
-- Запобігає конфліктам імен (наприклад, два сервіси з іменем `backend-service` у різних namespaces).
-- Дозволяє обмежувати ресурси (Resource Quotas) для конкретних груп.
-
-Звернення до сервісу в іншому namespace здійснюється через повне доменне ім'я (FQDN):
-`<service-name>.<namespace>.svc.cluster.local`
-
-### 2. ConfigMap
-`ConfigMap` — об'єкт для зберігання неконфіденційних даних у парах ключ-значення.
-- Дозволяє відокремити конфігурацію від образу контейнера.
-- Може передаватися як змінні оточення або монтуватися як файли.
-
-### 3. Secret
-`Secret` — об'єкт для зберігання конфіденційних даних (паролі, токени).
-- Дані зберігаються у форматі `base64` (або `stringData` для автоматичного кодування).
-- В пам'яті вузла (tmpfs), що безпечніше, ніж зберігання у файлах на диску.
-
----
-
-## Архітектура лабораторної роботи
-
-У цій роботі ми розгортаємо проект з Лекції 4 у двох незалежних середовищах.
+## Вхідна архітектура (Docker Compose)
+Для ознайомлення з логікою роботи додатка використовується Docker Compose. Він дозволяє швидко запустити всі сервіси локально, перевірити взаємодію та зрозуміти параметризацію.
 
 ```mermaid
 graph TD
-    User([Користувач]) -- "Port 30080" --> ProxyProd[api-proxy-service:prod]
-    User -- "Port 30081" --> ProxyStaging[api-proxy-service:staging]
-
-    subgraph "Namespace: prod"
-        ProxyProd --> BackendProd[backend-deployment]
-        ProxyProd --> FrontendProd[frontend-deployment]
-        BackendProd --> MemcachedProd[memcached-service]
-        BackendProd --> ExtAPIProd[external-api-service]
-        BackendProd -. "envFrom" .-> CMProd[ConfigMap: backend-config]
-        BackendProd -. "envFrom" .-> SProd[Secret: backend-secret]
-        ExtAPIProd -. "API_KEY" .-> SExtProd[Secret: external-api-secret]
+    User([Користувач]) -- "Port 8080" --> Ingress[app-ingress]
+    
+    subgraph "Docker Compose"
+        Ingress -- "/" --> FE[vue-frontend]
+        Ingress -- "/api" --> BE[api-backend]
+        BE -- "Internal Request + API_KEY" --> APIP[api-products]
     end
 
-    subgraph "Namespace: staging"
-        ProxyStaging --> BackendStaging[backend-deployment]
-        ProxyStaging --> FrontendStaging[frontend-deployment]
-        BackendStaging --> MemcachedStaging[memcached-service]
-        BackendStaging --> ExtAPIStaging[external-api-service]
-        BackendStaging -. "envFrom" .-> CMStaging[ConfigMap: backend-config]
-        BackendStaging -. "envFrom" .-> SStaging[Secret: backend-secret]
-        ExtAPIStaging -. "API_KEY" .-> SExtStaging[Secret: external-api-secret]
-    end
-
-    style CMProd fill:#fff3e0,stroke:#ef6c00
-    style SProd fill:#ffebee,stroke:#c62828
-    style CMStaging fill:#e3f2fd,stroke:#1565c0
-    style SStaging fill:#f3e5f5,stroke:#7b1fa2
+    style FE fill:#e1f5fe,stroke:#01579b
+    style APIP fill:#f9f,stroke:#333,stroke-width:2px
 ```
 
 ---
 
-## Завдання та інструкція з виконання
+## Бажана архітектура в Kubernetes (Цільова)
+Основним завданням є деплой цієї ж системи в Kubernetes, де кожен компонент стає окремим об'єктом, а конфігурації виносяться в спеціалізовані ресурси.
 
-1.  **Підготовка середовища**
-    Переконайтеся, що ваш кластер (Minikube/Kind) запущений.
+```mermaid
+graph TD
+    User([Користувач]) -- "Ingress / NodePort" --> Ingress_Svc[Service: app-ingress]
 
-2.  **Створення просторів імен (Namespaces)**
-    Створіть два простори імен: `prod` та `staging` для ізоляції середовищ.
-    ```bash
-    kubectl apply -f k8s/namespace.yaml
-    ```
+    subgraph "Namespace: prod / staging"
+        Ingress_Svc --> FE_Svc[Service: vue-frontend]
+        Ingress_Svc --> BE_Svc[Service: api-backend]
+        
+        subgraph "Frontend Component"
+            FE_Svc --> FE_Deploy[Deployment: vue-frontend]
+            FE_Deploy --> FE_Pod[Pod: vue-frontend]
+        end
 
-3.  **Налаштування середовища Staging**
-    - **Створіть конфігурації та секрети**:
-      - `APP_ENV=staging`
-      - `APP_COLOR=#e3f2fd` (світло-блакитний)
-      - Додайте `API_KEY` та `DB_PASSWORD` зі значеннями для staging.
-    ```bash
-    kubectl apply -f k8s-staging/configs.yaml
-    ```
-    - **Розгорніть компоненти**: `frontend`, `backend`, `memcached`, `api-proxy` та `external-api` у namespace `staging`.
-    ```bash
-    kubectl apply -f k8s/backend.yaml -n staging
-    kubectl apply -f k8s/frontend.yaml -n staging
-    kubectl apply -f k8s/memcached.yaml -n staging
-    kubectl apply -f k8s/api-proxy.yaml -n staging
-    kubectl apply -f k8s/external-api.yaml -n staging
-    ```
-    - **Налаштуйте доступ**: встановіть унікальний `NodePort` (30081) для staging.
-    ```bash
-    kubectl patch svc api-proxy-service -n staging -p '{"spec":{"ports":[{"port":80,"nodePort":30081}]}}'
-    ```
+        subgraph "Backend Component"
+            BE_Svc --> BE_Deploy[Deployment: api-backend]
+            BE_Deploy --> BE_Pod[Pod: api-backend]
+        end
 
-4.  **Налаштування середовища Production**
-    - **Створіть конфігурації та секрети**:
-      - `APP_ENV=production`
-      - `APP_COLOR=#ffe0b2` (світло-помаранчевий)
-      - Додайте `API_KEY` та `DB_PASSWORD` зі значеннями для prod.
-    ```bash
-    kubectl apply -f k8s-prod/configs.yaml
-    ```
-    - **Розгорніть компоненти** у namespace `prod`.
-    ```bash
-    kubectl apply -f k8s/backend.yaml -n prod
-    kubectl apply -f k8s/frontend.yaml -n prod
-    kubectl apply -f k8s/memcached.yaml -n prod
-    kubectl apply -f k8s/api-proxy.yaml -n prod
-    kubectl apply -f k8s/external-api.yaml -n prod
-    ```
-    - **Налаштуйте доступ**: встановіть унікальний `NodePort` (30080) для prod.
-    ```bash
-    kubectl patch svc api-proxy-service -n prod -p '{"spec":{"ports":[{"port":80,"nodePort":30080}]}}'
-    ```
+        subgraph "Products API Component"
+            BE_Pod -- "Internal API Request" --> APIP_Svc[Service: api-products]
+            APIP_Svc --> APIP_Deploy[Deployment: api-products]
+            APIP_Deploy --> APIP_Pod[Pod: api-products]
+        end
 
-5.  **Перевірка та тестування**
-    - Переконайтеся, що всі поди запущені в обох namespaces:
-      ```bash
-      kubectl get pods -n staging
-      kubectl get pods -n prod
-      ```
-    - Перевірте доступність застосунків у браузері:
-      - **Staging**: `http://localhost:30081` (фон має бути блакитним)
-      - **Production**: `http://localhost:30080` (фон має бути помаранчевим)
-    - Перевірте, що змінні оточення (API_KEY, APP_ENV) відповідають налаштуванням кожного namespace.
-    - Перевірте отримання даних із зовнішнього API (подивіться логі бекенду або відповідь API, якщо фронтенд це відображає).
-      ```bash
-      kubectl logs -l app=backend -n staging
-      ```
+        subgraph "Configurations & Secrets"
+            CM[ConfigMap: app-config]
+            Sec[Secret: app-secrets]
+            
+            CM -. "envFrom / volume" .-> FE_Pod
+            CM -. "envFrom" .-> BE_Pod
+            Sec -. "envFrom (API_KEY)" .-> BE_Pod
+            Sec -. "envFrom (API_KEYS)" .-> APIP_Pod
+        end
+    end
 
----
-
-## Контрольні питання для перевірки
-
-1.  Чим відрізняється ConfigMap від Secret?
-2.  Як `backend` у namespace `prod` дізнається адресу `memcached`? (Підказка: подивіться на `MEMCACHED_SERVERS` у `configs.yaml`).
-3.  Чи можна звернутися до `backend-service.staging` із поду, що знаходиться в `prod`?
-4.  Що станеться, якщо змінити значення в `ConfigMap`? Чи оновиться воно в застосунку автоматично, якщо воно підключене через `envFrom`?
-5.  Чому ми використовуємо різні `nodePort` для `api-proxy` у різних namespaces?
-6.  Чи є дані у Secret зашифрованими за замовчуванням?
-7.  Для чого ми використовуємо окремий Secret для `external-api-secret` та ще й дублюємо ключ у `backend-secret`? Як можна було б це оптимізувати?
-8.  Як `backend` дізнається адресу `external-api-service` у своєму namespace?
-
----
-
-## Корисні команди
-
-```bash
-# Перегляд значень ConfigMap
-kubectl get configmap backend-config -n prod -o yaml
-
-# Декодування секрету для перевірки
-kubectl get secret backend-secret -n prod -o jsonpath='{.data.API_KEY}' | base64 --decode
-
-# Перезапуск Deployment для оновлення конфігів (якщо вони змінені)
-kubectl rollout restart deployment/backend-deployment -n prod
+    %% Styles
+    style CM fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+    style Sec fill:#ffebee,stroke:#c62828,stroke-width:2px
+    style FE_Deploy fill:#e1f5fe,stroke:#01579b
+    style BE_Deploy fill:#e8f5e9,stroke:#2e7d32
+    style APIP_Deploy fill:#fce4ec,stroke:#c2185b
+    style FE_Pod fill:#e1f5fe,stroke:#01579b,stroke-dasharray: 5 5
+    style BE_Pod fill:#e8f5e9,stroke:#2e7d32,stroke-dasharray: 5 5
+    style APIP_Pod fill:#fce4ec,stroke:#c2185b,stroke-dasharray: 5 5
 ```
+
+---
+
+## Етап 1: Запуск та аналіз вхідних даних (Docker Compose)
+Перш ніж переходити до Kubernetes, необхідно запустити проект локально, щоб зрозуміти його структуру та необхідні змінні оточення.
+
+### Опис компонентів архітектури:
+
+1.  **app-ingress (Nginx)**: 
+    - **Роль**: Єдина вхідна точка для зовнішнього трафіку (порт `8080`).
+    - **Функції**: Проксіює запити на `/` до `vue-frontend` та на `/api` до `api-backend`.
+    - **Значення для K8s**: Демонструє роль `Ingress` контролера або `Service` типу `LoadBalancer/NodePort`.
+
+2.  **vue-frontend (SPA)**:
+    - **Роль**: Інтерфейс користувача.
+    - **Особливість**: Використовує `envsubst` для підстановки змінних (`APP_TITLE`, `APP_BG_COLOR` тощо) у `index.html` під час старту контейнера.
+    - **Значення для K8s**: Показує, як передавати конфігурацію через `ConfigMap` у статичні файли (через змінні оточення або init-контейнери).
+
+3.  **api-backend (Node.js)**:
+    - **Роль**: Оркестратор запитів та API документація (`/api-docs`).
+    - **Функції**: Надає дані профілю та проксіює запити до сервісу продуктів, додаючи `API_KEY`.
+    - **Значення для K8s**: Демонструє внутрішню комунікацію між подами через `Services` та використання `Secrets` для авторизації в upstream-сервісах.
+
+4.  **api-products (Node.js)**:
+    - **Роль**: Ізольований сервіс даних (Upstream API).
+    - **Особливість**: Має два режими роботи (`production`/`staging`), які перемикаються залежно від `API_KEY`.
+    - **Значення для K8s**: Ілюструє ізоляцію середовищ (Namespaces) та важливість правильного управління ключами доступу.
+
+### Інструкція з запуску:
+
+1.  Перейдіть у директорію `labs/lab4-v2`.
+2.  Створіть файл `.env` та налаштуйте параметри:
+    ```env
+    APP_TITLE=Ivanov_IP-12
+    APP_ENV=staging
+    DOCS_URL=/api-docs
+    APP_BG_COLOR=#e3f2fd
+    API_KEY_PROD=super-secret-prod-key
+    API_KEY_STAGE=simple-stage-key
+    PRODUCTS_API_KEY=simple-stage-key
+    ```
+3.  Запустіть проект:
+    ```bash
+    docker-compose up --build
+    ```
+4.  **Аналіз**: Перевірте, як `PRODUCTS_API_KEY` впливає на кількість продуктів (staging vs production) та як `APP_TITLE` відображається на фронтенді.
+
+---
+
+## Етап 2: Реалізація в Kubernetes (Основне завдання)
+На основі аналізу Docker Compose, вам необхідно створити маніфести для Kubernetes, які реалізують цільову архітектуру:
+
+1.  **Розділення середовищ**: Створити `Namespaces`: `prod` та `stage`.
+2.  **Централізована конфігурація**: Використати `ConfigMaps` для налаштувань, які не є секретними (заголовки, кольори, URL).
+3.  **Безпека**: Використати `Secrets` для зберігання `API_KEY`.
+4.  **Оркестрація**: Створити `Deployments` для кожного з 4 сервісів.
+5.  **Мережа**: Налаштувати внутрішню взаємодію через `Services` (ClusterIP) та зовнішній доступ через `Ingress` (або `Service` типу `NodePort`).
+
+---
+
+## Контрольні питання
+1.  Як у Kubernetes забезпечити, щоб `api-backend` з namespace `stage` не міг випадково звернутися до `api-products` у namespace `prod`?
+2.  Яка перевага використання `ConfigMap` у Kubernetes порівняно з передачею змінних через `environment` у Docker Compose?
+3.  Як оновити `API_KEY` для працюючого застосунку в Kubernetes без перезбірки Docker-образу?
+4.  Поясніть роль `app-ingress` у цій архітектурі та як його можна замінити нативним ресурсом `Ingress` у Kubernetes.
