@@ -1,0 +1,50 @@
+services:
+  app-ingress:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./app-ingress/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - vue-frontend
+      - api-backend
+  vue-frontend:
+    build: 
+      context: vue-frontend
+      no_cache: true
+    image: lab5-vue-frontend:latest
+    environment:
+      - APP_TITLE=${APP_TITLE:-Lab 5 Product Store}
+      - APP_ENV=${APP_ENV:-development}
+      - STUDENT_FIO=${STUDENT_FIO:-Student}
+      - STUDENT_GROUP=${STUDENT_GROUP:-Group}
+    depends_on:
+      - api-backend
+  api-backend:
+    build:
+      context: api-backend
+      no_cache: true
+    image: lab5-api-backend:latest
+    environment:
+      - PORT=3000
+      - DB_HOST=mysql
+      - DB_USER=root
+      - DB_PASSWORD=${MYSQL_ROOT_PASSWORD:-password}
+      - DB_NAME=lab5_db
+      - SEED_COUNT=${SEED_COUNT:-10}
+    depends_on:
+      mysql:
+        condition: service_healthy
+  mysql:
+    image: mysql:5.7
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-password}
+      - MYSQL_DATABASE=lab5_db
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 10s
+      retries: 5
+volumes:
+  mysql-data:

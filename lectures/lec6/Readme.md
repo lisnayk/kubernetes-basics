@@ -23,7 +23,89 @@
 
 Замість ручного створення PV, Kubernetes може створювати їх автоматично за допомогою **StorageClass**. Коли ви створюєте PVC, кластер дивиться на доступні StorageClasses і автоматично створює відповідний PV у хмарного провайдера (AWS, GCP, Azure) або локальному сховищі.
 
----
+```mermaid
+graph TD
+    subgraph Namespace [Простір розробника]
+        POD["Pod (Монтує томи)"]
+        PVC["Persistent Volume Claim (PVC)"]
+    end
+
+    subgraph Cluster [Рівень кластера]
+        SC["StorageClass (Правила створення)"]
+        PV["Persistent Volume (PV)"]
+    end
+
+    subgraph Infrastructure [Інфраструктура]
+        DSK[("Фізичний диск (EBS/NFS/Local)")]
+    end
+
+    %% Взаємозв'язки
+    POD -.-> PVC
+    PVC <--> PV
+    SC -.-> PV
+    PV <--> DSK
+
+    %% Стилі
+    style SC fill:#f9f,stroke:#333
+    style PVC fill:#bbf,stroke:#333
+    style PV fill:#bfb,stroke:#333
+    style POD fill:#fff,stroke:#333
+    style DSK fill:#fdb,stroke:#333
+```
+
+Ось Mermaid-діаграма, яка класифікує основні варіанти зберігання даних (Storage) у Kubernetes за їхньою природою та тривалістю життя.
+
+```mermaid
+graph TD
+    Root["<b>Kubernetes Storage Options</b>"] --> Ephemeral["<b>Ефемерні (Тимчасові)</b><br/>Живуть стільки ж, скільки Pod"]
+    Root --> Persistent["<b>Постійні (Persistent)</b><br/>Зберігаються після видалення Pod"]
+
+    %% Ефемерні типи
+    Ephemeral --> emptyDir["<b>emptyDir</b><br/>(RAM або Диск ноди)"]
+    Ephemeral --> configSecret["<b>Конфігураційні</b><br/>(ConfigMap / Secret)"]
+    Ephemeral --> hostPath["<b>hostPath</b><br/>(Локальна папка ноди)"]
+
+    %% Постійні типи
+    Persistent --> StaticPV["<b>Статичні (Static PV)</b><br/>Створені адміном вручну"]
+    Persistent --> DynamicSC["<b>Динамічні (StorageClass)</b><br/>Створюються автоматично в хмарі"]
+
+    %% Класифікація за протоколом
+    DynamicSC --> Block["<b>Блокові (RWO)</b><br/>AWS EBS, Google PD, AzureDisk"]
+    DynamicSC --> File["<b>Файлові (RWX)</b><br/>NFS, Azure Files, GlusterFS"]
+    DynamicSC --> Object["<b>Об'єктні (S3 API)</b><br/>MinIO, AWS S3, Ceph RGW"]
+
+    %% Стилізація
+    style Root fill:#f96,stroke:#333,stroke-width:4px
+    style Ephemeral fill:#fff4dd,stroke:#d4a017
+    style Persistent fill:#e1f5fe,stroke:#01579b
+    style DynamicSC fill:#e8f5e9,stroke:#2e7d32
+    style StaticPV fill:#f3e5f5,stroke:#7b1fa2
+```
+
+### Класифікація варіантів зберігання:
+
+#### 1. Ефемерні (Ephemeral) — Тимчасові
+Ці сховища автоматично очищуються, коли Pod видаляється.
+*   **emptyDir**: Порожня папка. Використовується для кешування або як проміжне місце для обробки файлів. Може працювати в оперативній пам'яті (`medium: Memory`).
+*   **ConfigMap / Secret**: Спосіб "монтування" конфігураційних файлів або паролів як звичайних файлів усередині контейнера.
+*   **hostPath**: Монтує папку з хост-машини. Використовується системними додатками (логи, моніторинг заліза).
+
+#### 2. Постійні (Persistent) — Надійні
+Дані залишаються, навіть якщо весь кластер буде перезапущено.
+*   **Блокові сховища (Block Storage)**: Найшвидші, зазвичай мають режим `ReadWriteOnce` (підключаються тільки до одного вузла одночасно). Ідеально для баз даних.
+*   **Файлові системи (Shared File Systems)**: Дозволяють режим `ReadWriteMany` (багато Pod-ів на різних вузлах можуть одночасно читати й писати). Наприклад, для CMS (WordPress) або спільних архівів.
+*   **Об'єктні сховища (Object Storage)**: Не монтуються як диски, а доступні через API (S3). Найбільш масштабовані, підходять для великих масивів медіа-файлів.
+
+#### 3. Методи виділення (Provisioning)
+*   **Статичний**: Адміністратор заздалегідь створює купу `PersistentVolumes` певного розміру.
+*   **Динамічний**: Адміністратор створює лише правила (`StorageClass`), а Kubernetes сам замовляє диски у хмарного провайдера, коли розробник створює `PVC`.
+
+### Який варіант обрати?
+*   **База даних?** -> Dynamic StorageClass (Block Storage).
+*   **Тимчасовий кеш?** -> emptyDir.
+*   **Спільні картинки для сайту?** -> Shared File System (NFS/EFS).
+*   **Конфігурація додатка?** -> ConfigMap.
+
 
 ## StatefulSet: Робота з додатками зі станом
 
@@ -117,3 +199,9 @@ kubectl run mysql-client --image=mysql:5.7 -it --rm -- restart=Never -- mysql -h
 kubectl exec deployment-pvc-HASH-1 -- sh -c "echo 'Hello from Pod 1' > /usr/share/nginx/html/index.html"
 kubectl exec deployment-pvc-HASH-2 -- cat /usr/share/nginx/html/index.html
 ```
+
+Додаткові матеріали:
+- [Kubernetes Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
+- [Kubernetes Persistent Volume Claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#persistentvolumeclaims)
+- [Kubernetes StatefulSets](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/)
+- https://www.uffizzi.com/kubernetes-multi-tenancy/kubernetes-storage-class

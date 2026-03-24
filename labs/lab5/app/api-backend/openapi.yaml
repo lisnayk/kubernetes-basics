@@ -1,0 +1,31 @@
+openapi: 3.0.0
+info:
+  title: Lab 5 API Backend
+  version: 1.0.0
+  description: Product API for Lab 5
+paths:
+  /api/products:
+    get:
+      tags: [Products]
+      summary: Get all products
+      responses:
+        '200':
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        price: { type: number }
+        description: { type: string }
+        category: { type: string }
+        image: { type: string }
+        created_at: { type: string }

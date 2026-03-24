@@ -51,7 +51,7 @@
 2. [Лабораторна робота №2. Простори імен (Namespace) та робота з об'єктом Pod](labs/lab2/Readme.md)
 3. [Лабораторна робота №3. Робота з об'єктами Deployment та Service](labs/lab3/Readme.md)
 4. [Лабораторна робота №4. Перенесення багатокомпонентної архітектури в Kubernetes](labs/lab4/Readme.md)
-5. [Лабораторна робота №5. StatefullSet та PersistanceVolume (draft)](labs/lab5/Readme.md)
+5. [Лабораторна робота №5. StatefullSet та PersistanceVolume](labs/lab5/Readme.md)
 ---
 
 ## Використані інструменти та технології

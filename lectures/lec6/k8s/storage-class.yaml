@@ -1,0 +1,10 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: standard
+# У кластері Kind за замовчуванням вже є StorageClass з іменем `standard`.
+# Цей файл можна використовувати для створення нового StorageClass або як приклад.
+provisioner: rancher.io/local-path
+parameters:
+#  type: gp2
+reclaimPolicy: Delete

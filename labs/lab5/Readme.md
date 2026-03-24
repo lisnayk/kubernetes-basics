@@ -4,12 +4,30 @@
 Навчитися працювати з даними в Kubernetes, використовувати **PersistentVolumes**, **PersistentVolumeClaims** та розгортати додатки зі станом (stateful) за допомогою **StatefulSet**.
 
 ## Завдання
-В цій лабораторній роботі ми розширимо архітектуру з Лабораторної роботи №4, додавши до неї рівень збереження даних (Database Layer).
+В цій лабораторній роботі ми розширимо архітектуру, додавши до неї рівень збереження даних (Database Layer) та реалізувавши автоматичне наповнення бази даних при старті.
 
-### 1. Архітектура
-Необхідно додати до існуючої схеми два сервери баз даних:
-- **MySQL**: для `api-backend`.
-- **MongoDB**: для `api-products`.
+## Вхідна архітектура (Docker Compose)
+Для ознайомлення з логікою роботи додатка використовується Docker Compose. Він дозволяє швидко запустити всі сервіси локально, перевірити взаємодію та зрозуміти параметризацію.
+
+```mermaid
+graph TD
+    User([Користувач]) -- "Port 8080" --> Ingress[app-ingress]
+    
+    subgraph "Docker Compose"
+        Ingress -- "/" --> FE[vue-frontend]
+        Ingress -- "/api" --> BE[api-backend]
+        BE -- "SQL (Port 3306)" --> MySQL[(MySQL)]
+    end
+
+    style FE fill:#e1f5fe,stroke:#01579b
+    style BE fill:#e8f5e9,stroke:#2e7d32
+    style MySQL fill:#fff3e0,stroke:#ef6c00
+```
+
+---
+
+## Бажана архітектура в Kubernetes (Цільова)
+Основним завданням є деплой цієї ж системи в Kubernetes, де кожен компонент стає окремим об'єктом, а конфігурації виносяться в спеціалізовані ресурси.
 
 ```mermaid
 graph TD
@@ -29,102 +47,95 @@ graph TD
             BE_Deploy --> BE_Pod[Pod: api-backend]
         end
         
-        subgraph "Products API Component"
-            BE_Pod -- "API Key Auth" --> APIP_Svc[Service: api-products]
-            APIP_Svc --> APIP_Deploy[Deployment: api-products]
-            APIP_Deploy --> APIP_Pod[Pod: api-products]
-        end
-
         subgraph "Database Layer (StatefulSet)"
-            MySQL_Svc[Headless Service: mysql]
-            MySQL_SS[StatefulSet: mysql]
-            MySQL_Pod[Pod: mysql-0]
-            MySQL_PVC[(PVC: mysql-data)]
-            
-            Mongo_Svc[Headless Service: mongodb]
-            Mongo_SS[StatefulSet: mongodb]
-            Mongo_Pod[Pod: mongodb-0]
-            Mongo_PVC[(PVC: mongo-data)]
-
-            MySQL_Svc -. "DNS Discovery" .-> MySQL_SS
-            MySQL_SS --> MySQL_Pod
-            MySQL_Pod --- MySQL_PVC
-
-            Mongo_Svc -. "DNS Discovery" .-> Mongo_SS
-            Mongo_SS --> Mongo_Pod
-            Mongo_Pod --- Mongo_PVC
+            BE_Pod -- "SQL (Port 3306)" --> MySQL_Svc[Service: mysql]
+            MySQL_Svc --> MySQL_SS[StatefulSet: mysql]
+            MySQL_SS --> MySQL_Pod[Pod: mysql-0]
+            MySQL_Pod --- MySQL_PVC[(PVC: mysql-data)]
         end
 
-        BE_Pod -- "JDBC/SQL" --> MySQL_Svc
-        APIP_Pod -- "Mongo Protocol" --> Mongo_Svc
-
-        subgraph "Config & Secrets (Shared)"
+        subgraph "Configurations & Secrets"
             CM[ConfigMap: app-config]
-            Sec[Secret: app-secrets]
-            MySQL_Secret[Secret: mysql-secret]
-            Mongo_Secret[Secret: mongo-secret]
+            Sec[Secret: mysql-secret]
+            
+            CM -. "envFrom" .-> FE_Pod
+            CM -. "envFrom" .-> BE_Pod
+            Sec -. "env: MYSQL_ROOT_PASSWORD" .-> MySQL_Pod
+            Sec -. "env: DB_PASSWORD" .-> BE_Pod
         end
-
-        MySQL_Secret -. "env: MYSQL_ROOT_PASSWORD" .-> MySQL_Pod
-        Mongo_Secret -. "env: MONGO_INITDB_ROOT_*" .-> Mongo_Pod
-
-        CM -. "env" .-> BE_Pod
-        CM -. "env" .-> APIP_Pod
-        Sec -. "env: API_KEY" .-> BE_Pod
-        Sec -. "env: API_KEYS" .-> APIP_Pod
     end
 
     %% Styles
-    style MySQL_Secret fill:#ffebee,stroke:#c62828,stroke-width:2px
-    style Mongo_Secret fill:#ffebee,stroke:#c62828,stroke-width:2px
-    style MySQL_SS fill:#e8f5e9,stroke:#2e7d32
-    style Mongo_SS fill:#e8f5e9,stroke:#2e7d32
-    style MySQL_Pod fill:#e8f5e9,stroke:#2e7d32,stroke-dasharray: 5 5
-    style Mongo_Pod fill:#e8f5e9,stroke:#2e7d32,stroke-dasharray: 5 5
     style CM fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
     style Sec fill:#ffebee,stroke:#c62828,stroke-width:2px
-    style BE_Pod fill:#e8f5e9,stroke:#2e7d32,stroke-dasharray: 5 5
-    style APIP_Pod fill:#fce4ec,stroke:#c2185b,stroke-dasharray: 5 5
+    style FE_Deploy fill:#e1f5fe,stroke:#01579b
+    style BE_Deploy fill:#e8f5e9,stroke:#2e7d32
+    style MySQL_SS fill:#e8f5e9,stroke:#2e7d32
     style FE_Pod fill:#e1f5fe,stroke:#01579b,stroke-dasharray: 5 5
+    style BE_Pod fill:#e8f5e9,stroke:#2e7d32,stroke-dasharray: 5 5
 ```
 
-### 2. Вимоги до реалізації
+---
 
-#### Бази даних (StatefulSet)
-1. **MySQL**:
-   - Використати образ `mysql:5.7`.
-   - Пароль `root` має зберігатися у **Secret**.
-   - Налаштувати **Headless Service** для доступу.
-   - Використати `volumeClaimTemplates` для створення тому об'ємом `1Gi`.
-   - Назва бази даних за замовчуванням: `lab5_db`.
+## Етап 1: Запуск та аналіз вхідних даних (Docker Compose)
+Перш ніж переходити до Kubernetes, необхідно запустити проект локально, щоб зрозуміти його структуру та необхідні змінні оточення.
 
-2. **MongoDB**:
-   - Використати образ `mongo:4.4`.
-   - Логін та пароль `root` мають зберігатися у **Secret**.
-   - Налаштувати **Headless Service**.
-   - Використати `volumeClaimTemplates` для створення тому об'ємом `1Gi`.
-   - Назва бази даних за замовчуванням: `lab5_products`.
+### Опис компонентів архітектури:
 
-#### Оновлення існуючих сервісів (Deployments)
-Необхідно оновити маніфести з Лабораторної роботи №4:
-1. Передати параметри підключення до баз даних через змінні оточення в `api-backend` та `api-products`.
-2. Використати DNS-імена сервісів баз даних (наприклад, `mysql.lab5.svc.cluster.local`).
+1.  **app-ingress (Nginx)**: 
+    - **Роль**: Єдина вхідна точка для зовнішнього трафіку (порт `8080`).
+    - **Функції**: Проксіює запити на `/` до `vue-frontend` та на `/api` до `api-backend`.
+    - **Важливо**: Це окремий сервіс (reverse-proxy), який ви реалізуєте самостійно, а не вбудований Ingress-контролер Kubernetes.
+    - **Значення для K8s**: Демонструє логіку роботи Ingress-ресурсу на прикладі звичайного проксі-сервера.
 
-### 3. Порядок виконання
+2.  **vue-frontend (SPA)**:
+    - **Роль**: Інтерфейс користувача (Vue.js + Tailwind).
+    - **Особливість**: Використовує динамічну конфігурацію через `window.config` (генерується при старті).
+    - **Значення для K8s**: Показує, як передавати конфігурацію через `ConfigMap`.
 
-1. Створіть новий Namespace `lab5`.
-2. Розгорніть **Secrets** для MySQL та MongoDB.
-3. Розгорніть **StatefulSet** для MySQL та MongoDB.
-4. Перевірте створення **PersistentVolumeClaims (PVC)** та **PersistentVolumes (PV)**:
-   ```bash
-   kubectl get pvc -n lab5
-   kubectl get pv
-   ```
-5. Перевірте стабільність мережевих ідентифікаторів. Спробуйте видалити один з Pod-ів StatefulSet і переконайтеся, що новий Pod отримав те саме ім'я та підключив той самий диск.
-6. Оновіть та розгорніть `api-backend` та `api-products`.
+3.  **api-backend (Node.js)**:
+    - **Роль**: API сервер та логіка роботи з даними.
+    - **Функції**: Надає REST API та виконує автоматичне наповнення БД (seeding).
+    - **Значення для K8s**: Демонструє роботу з БД усередині кластера та використання `Secrets`.
 
-### 4. Контрольні питання
-1. Чим відрізняється робота з дисками у `Deployment` (через `volumes`) та у `StatefulSet` (через `volumeClaimTemplates`)?
-2. Що таке **Headless Service** і навіщо він потрібен для баз даних?
-3. Що станеться з даними в `mysql-data-mysql-0` PVC, якщо ви видалите `StatefulSet`?
-4. Які переваги надає стабільний мережевий ідентифікатор (`pod-0.service-name`) для систем реплікації?
+4.  **mysql (Database)**:
+    - **Роль**: Збереження даних.
+    - **Особливість**: Вимагає постійного сховища (Persistent Storage).
+    - **Значення для K8s**: Ілюструє роботу `StatefulSet` та `PersistentVolumeClaims`.
+
+### Інструкція з запуску:
+
+1.  Перейдіть у директорію `labs/lab5/app`.
+2.  Створіть файл `.env` (за потреби):
+    ```env
+    APP_TITLE=Lab 5 My Store
+    APP_ENV=development
+    STUDENT_FIO=Іванов Іван Іванович
+    STUDENT_GROUP=ІП-11
+    MYSQL_ROOT_PASSWORD=very-secure-password
+    SEED_COUNT=15
+    ```
+3.  Запустіть проект:
+    ```bash
+    ./start.sh
+    ```
+4.  **Аналіз**: Відкрийте `http://localhost:8080` та перевірте, чи з'явилися продукти в каталозі.
+
+---
+
+## Етап 2: Реалізація в Kubernetes (Основне завдання)
+На основі аналізу Docker Compose, вам необхідно створити або доопрацювати маніфести для Kubernetes, які реалізують цільову архітектуру:
+
+1.  **Створення Namespace**: Ресурс повинен бути розгорнутий у просторі імен `lab5`.
+2.  **Централізована конфігурація**: Створити `ConfigMap` для налаштувань (`APP_TITLE`, `STUDENT_FIO` тощо).
+3.  **Безпека**: Використати `Secrets` для паролів бази даних.
+4.  **Стабільність даних**: Реалізувати `StatefulSet` для MySQL з використанням `volumeClaimTemplates`.
+5.  **Мережа**: Налаштувати `Services` для кожного компонента та `Ingress` для зовнішнього доступу.
+
+
+## Контрольні питання
+1. Чим відрізняється робота з дисками у `Deployment` та у `StatefulSet`?
+2. Навіщо використовувати `healthcheck` у Docker Compose для бази даних?
+3. Як реалізована ідемпотентність процесу "seeding" у бекенді?
+4. Що станеться з даними у MySQL, якщо видалити Pod, і чому?
+5. Як передати пароль від БД у бекенд безпечним способом у Kubernetes?

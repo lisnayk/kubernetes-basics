@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Catalog</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div id="app" class="container mx-auto px-4 py-8">
+        <header class="flex justify-between items-center mb-12">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">{{ appTitle }}</h1>
+                <p class="text-gray-600">Environment: <span class="font-semibold uppercase">{{ appEnv }}</span></p>
+                <p class="text-gray-600">Student: <span class="font-semibold">{{ studentFio }} ({{ studentGroup }})</span></p>
+            </div>
+            <div class="flex items-center space-x-6">
+                <a href="/api-docs" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium flex items-center">
+                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    API Docs
+                </a>
+                <div class="bg-white p-4 rounded-lg shadow-sm text-right">
+                    <p class="text-sm text-gray-500">API Stats</p>
+                    <p class="text-2xl font-bold text-blue-600">{{ products.length }} Products</p>
+                </div>
+            </div>
+        </header>
+
+        <div v-if="loading" class="flex justify-center items-center h-64">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+
+        <div v-else-if="error" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-8" role="alert">
+            <p class="font-bold">Error</p>
+            <p>{{ error }}</p>
+        </div>
+
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div v-for="product in products" :key="product.id" class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                <div class="h-48 bg-gray-200 flex items-center justify-center text-gray-400 overflow-hidden">
+                    <img v-if="product.image" :src="product.image" :alt="product.name" class="w-full h-full object-cover">
+                    <span v-else class="text-5xl">📦</span>
+                </div>
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-2">
+                        <h2 class="text-xl font-bold text-gray-800">{{ product.name }}</h2>
+                        <span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded uppercase">
+                            {{ product.category }}
+                        </span>
+                    </div>
+                    <p class="text-gray-600 mb-4 text-sm line-clamp-2">{{ product.description }}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-2xl font-bold text-blue-600">${{ product.price }}</span>
+                        <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                            Add to Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="mt-16 pt-8 border-t border-gray-200 text-center text-gray-500 text-sm">
+            <p>Lab 5 - Kubernetes & Persistent Data Demo</p>
+            <p class="mt-2">Powered by Node.js & MySQL</p>
+        </footer>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const appTitle = ref(window.APP_TITLE || 'Product Catalog');
+                const appEnv = ref(window.APP_ENV || 'production');
+                const studentFio = ref(window.STUDENT_FIO || 'Student');
+                const studentGroup = ref(window.STUDENT_GROUP || 'Group');
+                const products = ref([]);
+                const loading = ref(true);
+                const error = ref(null);
+
+                const fetchProducts = async () => {
+                    document.title = `${appTitle.value} - ${studentFio.value} (${studentGroup.value})`;
+                    try {
+                        const response = await fetch('/api/products');
+                        if (!response.ok) throw new Error('Failed to fetch products');
+                        products.value = await response.json();
+                    } catch (err) {
+                        error.value = err.message;
+                        console.error(err);
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                onMounted(fetchProducts);
+
+                return {
+                    appTitle,
+                    appEnv,
+                    studentFio,
+                    studentGroup,
+                    products,
+                    loading,
+                    error
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
