@@ -1,0 +1,12 @@
+{
+  "name": "lab6-1-web-app",
+  "version": "1.0.0",
+  "description": "Simple student profile app for K8s lab",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

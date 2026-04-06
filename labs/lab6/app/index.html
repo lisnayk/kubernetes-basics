@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 6.1: Ingress Configuration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
+
+    <div id="mainCard" class="bg-white rounded-3xl shadow-2xl p-8 max-w-lg w-full transform transition duration-500 hover:scale-105 border border-indigo-50">
+        <div class="flex justify-between items-center mb-8">
+            <h1 id="appTitle" class="text-2xl font-extrabold text-indigo-900 tracking-tight">Лабораторна 6.1</h1>
+            <span id="appBadge" class="px-4 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-full uppercase tracking-widest">Ingress Demo</span>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Студентська картка -->
+            <div class="bg-indigo-50 rounded-2xl p-6 border border-indigo-100 relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 text-indigo-100 text-6xl opacity-50">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <div class="relative z-10">
+                    <p class="text-xs text-indigo-400 font-bold uppercase mb-1">Студент</p>
+                    <p id="studentName" class="text-xl font-black text-indigo-900 mb-4">Завантаження...</p>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-[10px] text-indigo-400 font-bold uppercase">Група</p>
+                            <p id="studentGroup" class="text-sm font-bold text-indigo-800">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Технічні дані -->
+            <div class="grid grid-cols-1 gap-3">
+                <div class="flex items-center p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm mr-4 text-indigo-500">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase leading-none mb-1">Hostname (Pod)</p>
+                        <p id="podName" class="text-xs font-mono font-semibold text-slate-700">unknown</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm mr-4 text-green-500">
+                        <i class="fas fa-network-wired"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase leading-none mb-1">IP Address</p>
+                        <p id="podIP" class="text-xs font-mono font-semibold text-slate-700">0.0.0.0</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm mr-4 text-orange-500">
+                        <i class="fas fa-cubes"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase leading-none mb-1">Namespace</p>
+                        <p id="namespace" class="text-xs font-mono font-semibold text-slate-700">default</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-slate-100 flex justify-center">
+            <button onclick="fetchInfo()" class="group flex items-center px-6 py-2.5 bg-white border-2 border-indigo-600 text-indigo-600 font-bold rounded-full hover:bg-indigo-600 hover:text-white transition duration-300 active:scale-95">
+                <i class="fas fa-sync-alt mr-2 group-hover:rotate-180 transition-transform duration-500"></i>
+                Оновити дані
+            </button>
+        </div>
+    </div>
+
+    <script>
+        async function fetchInfo() {
+            try {
+                const response = await fetch('/api/info');
+                const data = await response.json();
+                
+                document.getElementById('studentName').innerText = data.name;
+                document.getElementById('studentGroup').innerText = data.group;
+                document.getElementById('podName').innerText = data.hostname;
+                document.getElementById('podIP').innerText = data.podIP;
+                document.getElementById('namespace').innerText = data.namespace;
+
+                // Налаштування теми залежно від типу додатка
+                const title = document.getElementById('appTitle');
+                const badge = document.getElementById('appBadge');
+                const card = document.getElementById('mainCard');
+
+                if (data.appType === 'blog') {
+                    title.innerText = 'Blog Service';
+                    badge.innerText = 'Blog Mode';
+                    badge.className = 'px-4 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-full uppercase tracking-widest';
+                } else if (data.appType === 'video') {
+                    title.innerText = 'Video Service';
+                    badge.innerText = 'Video Mode';
+                    badge.className = 'px-4 py-1.5 bg-rose-600 text-white text-xs font-bold rounded-full uppercase tracking-widest';
+                }
+            } catch (error) {
+                console.error('Помилка отримання даних:', error);
+            }
+        }
+
+        // Завантажити при старті
+        fetchInfo();
+    </script>
+</body>
+</html>

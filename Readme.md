@@ -43,6 +43,9 @@
 3. [Лекція №3. Deployments](lectures/lec3/Readme.md)
 4. [Лекція №4. Services](lectures/lec4/Readme.md)
 5. [Лекція №5. ConfigMap та Secrets](lectures/lec5/Readme.md)
+6. [Лекція №6. Storage (PV, PVC, StatefulSet)](lectures/lec6/Readme.md)
+7. [Лекція №7. Kubernetes Networking та Ingress](lectures/lec7/Readme.md)
+8. [Лекція №8. Kubernetes API та RBAC](lectures/lec8/Readme.md)
 ---
 
 ### Лабораторні роботи
@@ -51,7 +54,9 @@
 2. [Лабораторна робота №2. Простори імен (Namespace) та робота з об'єктом Pod](labs/lab2/Readme.md)
 3. [Лабораторна робота №3. Робота з об'єктами Deployment та Service](labs/lab3/Readme.md)
 4. [Лабораторна робота №4. Перенесення багатокомпонентної архітектури в Kubernetes](labs/lab4/Readme.md)
-5. [Лабораторна робота №5. StatefullSet та PersistanceVolume](labs/lab5/Readme.md)
+5. [Лабораторна робота №5. Persistent Data та StatefulSet](labs/lab5/Readme.md)
+6. [Лабораторна робота №6. Налаштування Ingress (Paths та Hosts)](labs/lab6/Readme.md)
+7. [Лабораторна робота №7. Використання Kubernetes API та RBAC (draft)](labs/lab7/Readme.md)
 ---
 
 ## Використані інструменти та технології
