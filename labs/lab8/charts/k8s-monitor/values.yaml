@@ -1,0 +1,35 @@
+replicaCount: 1
+
+image:
+  repository: k8s-monitor
+  pullPolicy: Never
+  tag: "v4"
+
+student:
+  name: "Ivanov Ivan"
+  group: "IP-12"
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: ""
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: lab8.local
+      paths:
+        - path: /
+          pathType: Prefix
+
+rbac:
+  # Вмикає створення ClusterRole та ClusterRoleBinding
+  create: true
+
+serviceAccount:
+  # Вмикає створення ServiceAccount для додатка
+  create: true
+  # Якщо не вказано, використовується fullname чарту
+  name: ""

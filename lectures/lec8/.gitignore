@@ -1,0 +1,17 @@
+!.gitignore
+# Private keys (sensitive!)
+*.key
+
+# Certificate Signing Requests (temporary)
+*.csr
+
+# Certificates (can be regenerated)
+*.crt
+
+# Kubernetes secrets (if any generated locally)
+*secret*.yaml
+
+# Temporary and backup files
+*.tmp
+*.bak
+*~

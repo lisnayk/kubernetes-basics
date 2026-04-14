@@ -56,7 +56,8 @@
 4. [Лабораторна робота №4. Перенесення багатокомпонентної архітектури в Kubernetes](labs/lab4/Readme.md)
 5. [Лабораторна робота №5. Persistent Data та StatefulSet](labs/lab5/Readme.md)
 6. [Лабораторна робота №6. Налаштування Ingress (Paths та Hosts)](labs/lab6/Readme.md)
-7. [Лабораторна робота №7. Використання Kubernetes API та RBAC (draft)](labs/lab7/Readme.md)
+7. [Лабораторна робота №7. Використання Kubernetes API та RBAC](labs/lab7/Readme.md)
+8. [Лабораторна робота №8. Helm Charts](labs/lab8/Readme.md)
 ---
 
 ## Використані інструменти та технології

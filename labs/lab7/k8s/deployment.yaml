@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-monitor
+  namespace: lab7
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-monitor
+  template:
+    metadata:
+      labels:
+        app: k8s-monitor
+    spec:
+      serviceAccountName: pod-reader-sa
+      containers:
+      - name: monitor
+        image: k8s-monitor:v4
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+        env:
+        - name: STUDENT_NAME
+          value: "Ivanov Ivan"
+        - name: STUDENT_GROUP
+          value: "IP-12"
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
